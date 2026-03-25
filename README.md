@@ -28,7 +28,7 @@ Laser-Projector/
 
 ### Mechanical
 
-The chassis is designed for 3D printing and holds the two stepper motors and mirrors in alignment so that the laser beam can be deflected in both the X and Y axes. Design files are located in `3d-models/chassis/`.
+The chassis is designed for 3D printing and forms one integrated unit that holds the two stepper motors and mirrors in alignment so that the laser beam can be deflected in both the X and Y axes. It also provides mounting space for the motor controller board(s) (it is yet to be decided whether one combined board or two separate boards are more practical) and the microcontroller board. Design files are located in `3d-models/chassis/`.
 
 ### Electronics
 
