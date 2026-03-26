@@ -1,0 +1,20 @@
+digraph BlockDiagram {
+    rankdir=LR;
+    node [shape=box, style=filled, fillcolor=lightgrey, fontname="Helvetica"];
+
+    // Blocks
+    Power        [label="Power", fillcolor=lightyellow];
+    MCU          [label="MCU\n(Microcontroller)", fillcolor=lightblue];
+    MotorControl [label="Motor Control", fillcolor=lightgreen];
+    LaserControl [label="Laser Control", fillcolor=lightsalmon];
+
+    // Power outputs
+    Power -> MCU          [label="3.3V"];
+    Power -> LaserControl [label="5V"];
+    Power -> MotorControl [label="12V"];
+
+    // MCU outputs
+    MCU -> MotorControl [label="SPI_1"];
+    MCU -> MotorControl [label="SPI_2"];
+    MCU -> LaserControl [label="GPIO"];
+}
