@@ -8,6 +8,11 @@ digraph BlockDiagram {
     MotorControl [label="Motor Control", fillcolor=lightgreen];
     LaserControl [label="Laser Control", fillcolor=lightsalmon];
 
+    // Actuators
+    StepperX     [label="Stepper Motor X", fillcolor=white];
+    StepperY     [label="Stepper Motor Y", fillcolor=white];
+    LaserModule  [label="Laser Module", fillcolor=white];
+
     // Power outputs
     Power -> MCU          [label="3.3V"];
     Power -> LaserControl [label="5V"];
@@ -17,4 +22,9 @@ digraph BlockDiagram {
     MCU -> MotorControl [label="SPI_1"];
     MCU -> MotorControl [label="SPI_2"];
     MCU -> LaserControl [label="GPIO"];
+
+    // Actuator connections
+    MotorControl -> StepperX    [label="Stepper Drive X"];
+    MotorControl -> StepperY    [label="Stepper Drive Y"];
+    LaserControl -> LaserModule [label="Laser Drive"];
 }
