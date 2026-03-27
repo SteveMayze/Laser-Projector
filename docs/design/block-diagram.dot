@@ -5,19 +5,29 @@ digraph BlockDiagram {
     // ── Power ──────────────────────────────────────────────────────────────
     Power [label="Power", fillcolor=lightyellow];
 
-    // ── Input Sources (choose one or both) ────────────────────────────────
-    subgraph cluster_input {
-        label="Drawing Input (choose one or both)";
-        style=dashed;
-        color=grey;
-        SDCardReader [label="SD Card Reader\n(SPI)", fillcolor=white];
-        ESP32        [label="ESP32 Comms Module\n(Wi-Fi / BT)\nstreams commands via UART", fillcolor=white];
-    }
+    // ── Controller Module (Custom Board) ───────────────────────────────────
+    subgraph cluster_controller_module {
+        label="Controller Module (Custom Board)";
+        style=filled;
+        fillcolor=aliceblue;
+        color=steelblue;
 
-    // ── Firmware pipeline (runs on MCU) ───────────────────────────────────
-    CommandParser     [label="Command Parser\n(BLANK, UNBLANK, MOVE, GOTO,\nSPEED, DWELL, CIRCLE, ARC ...)", fillcolor=lightblue];
-    TrajectoryPlanner [label="Trajectory Planner\n(commands -> timed X/Y steps\n+ laser gate events)", fillcolor=lightblue];
-    MCU               [label="MCU\n(Microcontroller)\nMotion executor\nSync / timing", fillcolor=lightblue];
+        // Hardware components on the board
+        SDCardReader [label="SD Card Reader\n(SPI)", fillcolor=white];
+        ESP32        [label="ESP32 Comms Module\n(Wi-Fi / BT)", fillcolor=white];
+        MCU          [label="MCU\n(Microcontroller)\nMotion executor\nSync / timing", fillcolor=lightblue];
+
+        // Firmware constructs running on the MCU
+        subgraph cluster_firmware {
+            label="Firmware";
+            style=filled;
+            fillcolor=lightyellow;
+            color=goldenrod;
+
+            CommandParser     [label="Command Parser\n(BLANK, UNBLANK, MOVE, GOTO,\nSPEED, DWELL, CIRCLE, ARC ...)", fillcolor=lightblue];
+            TrajectoryPlanner [label="Trajectory Planner\n(commands -> timed X/Y steps\n+ laser gate events)", fillcolor=lightblue];
+        }
+    }
 
     // ── Control blocks ─────────────────────────────────────────────────────
     MotorControl [label="Motor Control\n(Stepper drivers)", fillcolor=lightgreen];
@@ -37,7 +47,7 @@ digraph BlockDiagram {
     Power -> SDCardReader [label="3.3V"];
     Power -> ESP32        [label="3.3V"];
 
-    // ── Data path: input -> parse -> plan -> execute ───────────────────────
+    // ── Data path: input -> parse -> plan -> execute ──────────────────────
     SDCardReader      -> CommandParser     [label="file read (SPI)"];
     ESP32             -> CommandParser     [label="cmd stream (UART)"];
     CommandParser     -> TrajectoryPlanner [label="parsed commands"];
