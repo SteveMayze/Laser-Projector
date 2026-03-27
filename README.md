@@ -51,6 +51,82 @@ Firmware source code is located in `firmware/`. It is responsible for:
 - Switching the laser on and off at the correct positions
 - Interpreting image or pattern data and converting it to motor steps
 
+## Drawing Grammar
+
+The projector interprets a simple command language — inspired by turtle graphics but
+adapted for a laser projector — to control mirror position and laser state. Commands
+are read either from an SD card file or streamed from an ESP32 comms module over UART.
+
+The terminology follows industry-standard laser show conventions: `BLANK` suppresses
+the beam during repositioning moves, and `UNBLANK` enables it when drawing.
+
+### Coordinate system
+
+All positions are expressed in **Cartesian coordinates on the XY projection plane**
+(e.g. millimetres at a fixed projection distance). A calibration step maps physical
+units to motor steps (recorded as a steps-per-unit constant in firmware).
+
+### Command set
+
+| Command                  | Description                                              |
+|--------------------------|----------------------------------------------------------|
+| `UNBLANK`                | Turn the laser on (beam visible, drawing)                |
+| `BLANK`                  | Turn the laser off (beam suppressed, repositioning)      |
+| `GOTO x y`               | Move to absolute position (x, y)                        |
+| `MOVE dx dy`             | Move relative to current position                        |
+| `SPEED v`                | Set traversal speed (units/sec)                          |
+| `DWELL t`                | Pause at current position for t milliseconds             |
+| `CIRCLE r`               | Draw a circle of radius r centred at current position    |
+| `ARC r startDeg endDeg`  | Draw an arc of radius r between two angles               |
+
+Higher-level macros (e.g. `TEXT`, `RECT`) can be built on top of these primitives
+in firmware.
+
+### Example program — a 10 mm square
+
+```
+BLANK
+GOTO 0 0
+UNBLANK
+MOVE 10 0
+MOVE 0 10
+MOVE -10 0
+MOVE 0 -10
+BLANK
+```
+
+## Data Input
+
+Two input methods are supported (they can coexist):
+
+### SD Card
+
+A plain-text drawing file (`.ldr` — Laser Drawing Record — or `.txt`) is placed on an SD card connected to
+the microcontroller over SPI. On power-up (or on receipt of a trigger), the MCU
+reads the file, parses the commands and executes them.
+
+### ESP32 Comms Module
+
+An ESP32 connected to the MCU over UART can stream commands in real time. The ESP32
+can receive drawing programs over Wi-Fi or Bluetooth, acting as a wireless front-end.
+This enables remote control and dynamic pattern generation without re-flashing the MCU.
+
+### Firmware pipeline
+
+```
+Input source (SD / ESP32)
+        │  raw text commands
+        ▼
+  Command Parser        — tokenises and validates the drawing grammar
+        │  parsed command structs
+        ▼
+  Trajectory Planner    — converts commands to timed (X, Y, laser) events,
+        │                 applying speed limits and coordinate mapping
+        ▼
+  Motion Executor (MCU) — issues step pulses to motor drivers and
+                          gates the laser in synchronisation
+```
+
 ## Getting Started
 
 > This project is in its initial stage. Design files and firmware will be added as the project progresses.
