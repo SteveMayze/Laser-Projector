@@ -11,6 +11,8 @@ digraph BlockDiagram {
     // Actuators
     StepperX     [label="Stepper Motor X", fillcolor=white];
     StepperY     [label="Stepper Motor Y", fillcolor=white];
+    MirrorMountX [label="Mirror Mount X\n(Rotary)", fillcolor=white];
+    MirrorMountY [label="Mirror Mount Y\n(Rotary)", fillcolor=white];
     LaserModule  [label="Laser Module", fillcolor=white];
 
     // Power outputs
@@ -26,5 +28,7 @@ digraph BlockDiagram {
     // Actuator connections
     MotorControl -> StepperX    [label="Stepper Drive X"];
     MotorControl -> StepperY    [label="Stepper Drive Y"];
+    StepperX -> MirrorMountX    [label="Shaft"];
+    StepperY -> MirrorMountY    [label="Shaft"];
     LaserControl -> LaserModule [label="Laser Drive"];
 }
