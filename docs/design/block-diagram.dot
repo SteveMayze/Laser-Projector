@@ -5,42 +5,53 @@ digraph BlockDiagram {
     // ── Power ──────────────────────────────────────────────────────────────
     Power [label="Power", fillcolor=lightyellow];
 
-    // ── Controllers cluster ────────────────────────────────────────────────
-    subgraph cluster_controllers {
-        label="Controllers";
-        style=filled;
-        fillcolor=aliceblue;
-        color=steelblue;
-
-        MCU          [label="MCU\n(Microcontroller)", fillcolor=lightblue];
-        MotorControl [label="Motor Control", fillcolor=lightgreen];
-        LaserControl [label="Laser Control", fillcolor=lightsalmon];
+    // ── Input Sources (choose one or both) ────────────────────────────────
+    subgraph cluster_input {
+        label="Drawing Input (choose one or both)";
+        style=dashed;
+        color=grey;
+        SDCardReader [label="SD Card Reader\n(SPI)", fillcolor=white];
+        ESP32        [label="ESP32 Comms Module\n(Wi-Fi / BT)\nstreams commands via UART", fillcolor=white];
     }
 
-    // ── Actuators cluster ──────────────────────────────────────────────────
-    subgraph cluster_actuators {
-        label="Actuators";
-        style=filled;
-        fillcolor=honeydew;
-        color=darkgreen;
+    // ── Firmware pipeline (runs on MCU) ───────────────────────────────────
+    CommandParser     [label="Command Parser\n(BLANK, UNBLANK, MOVE, GOTO,\nSPEED, DWELL, CIRCLE, ARC ...)", fillcolor=lightblue];
+    TrajectoryPlanner [label="Trajectory Planner\n(commands -> timed X/Y steps\n+ laser gate events)", fillcolor=lightblue];
+    MCU               [label="MCU\n(Microcontroller)\nMotion executor\nSync / timing", fillcolor=lightblue];
 
-        StepperX    [label="Stepper Motor X", fillcolor=white];
-        StepperY    [label="Stepper Motor Y", fillcolor=white];
-        LaserModule [label="Laser Module", fillcolor=white];
-    }
+    // ── Control blocks ─────────────────────────────────────────────────────
+    MotorControl [label="Motor Control\n(Stepper drivers)", fillcolor=lightgreen];
+    LaserControl [label="Laser Control\n(Modulation / Gating)", fillcolor=lightsalmon];
 
-    // ── Power outputs ──────────────────────────────────────────────────────
+    // ── Actuators ──────────────────────────────────────────────────────────
+    StepperX     [label="Stepper Motor X", fillcolor=white];
+    StepperY     [label="Stepper Motor Y", fillcolor=white];
+    MirrorMountX [label="Mirror Mount X\n(Rotary)", fillcolor=white];
+    MirrorMountY [label="Mirror Mount Y\n(Rotary)", fillcolor=white];
+    LaserModule  [label="Laser Module", fillcolor=white];
+
+    // ── Power distribution ────────────────────────────────────────────────
     Power -> MCU          [label="3.3V"];
     Power -> LaserControl [label="5V"];
     Power -> MotorControl [label="12V"];
+    Power -> SDCardReader [label="3.3V"];
+    Power -> ESP32        [label="3.3V"];
 
-    // ── MCU outputs ────────────────────────────────────────────────────────
-    MCU -> MotorControl [label="SPI_1"];
-    MCU -> MotorControl [label="SPI_2"];
-    MCU -> LaserControl [label="GPIO"];
+    // ── Data path: input -> parse -> plan -> execute ───────────────────────
+    SDCardReader      -> CommandParser     [label="file read (SPI)"];
+    ESP32             -> CommandParser     [label="cmd stream (UART)"];
+    CommandParser     -> TrajectoryPlanner [label="parsed commands"];
+    TrajectoryPlanner -> MCU               [label="trajectory segments"];
+
+    // ── MCU -> control blocks ─────────────────────────────────────────────
+    MCU -> MotorControl [label="SPI_1 (X driver)"];
+    MCU -> MotorControl [label="SPI_2 (Y driver)"];
+    MCU -> LaserControl [label="GPIO / PWM\n(laser gate + intensity)"];
 
     // ── Actuator connections ───────────────────────────────────────────────
-    MotorControl -> StepperX    [label="Stepper Drive X"];
-    MotorControl -> StepperY    [label="Stepper Drive Y"];
-    LaserControl -> LaserModule [label="Laser Drive"];
+    MotorControl -> StepperX     [label="Stepper Drive X"];
+    MotorControl -> StepperY     [label="Stepper Drive Y"];
+    StepperX     -> MirrorMountX [label="Shaft"];
+    StepperY     -> MirrorMountY [label="Shaft"];
+    LaserControl -> LaserModule  [label="Laser Drive"];
 }
